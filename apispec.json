@@ -1,0 +1,22 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "API Title",
+        "version": "1.0"
+    },
+    "servers": [
+        {
+            "url": "https://dev.server.test/v1",
+            "description": "Developement Server"
+        },
+        {
+            "url": "https://staging.server.test/v1",
+            "description": "Staging Server"
+        },
+        {
+            "url": "https://production.server.test/v1",
+            "description": "Production Server"
+        }
+    ],
+    "paths": {}
+}
