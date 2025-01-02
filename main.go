@@ -1,32 +1,31 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
-	"github.com/jmoiron/sqlx"
+	"database/sql"
+
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
 func main() {
+	// load env
 	err := godotenv.Load(".env")
-
 	if err != nil {
 		log.Fatalf("Error loading .env file")
 	}
-	port := os.Getenv("PORT")
-	fmt.Println(port)
-	db, err := sqlx.Connect("postgres", "user=postgres dbname=wpodev sslmode=disable password=Becarefulwithme host=192.168.61.83")
+	connectionString := os.Getenv("DATABASE_URL")
+	dbWpo, err := sql.Open("postgres", connectionString)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal(err)
 	}
 
-	defer db.Close()
-
+	// close connection at the end of main
+	defer dbWpo.Close()
 	// Test the connection to the database
-	err = db.Ping()
+	err = dbWpo.Ping()
 	if err != nil {
 		log.Fatal(err)
 	} else {
