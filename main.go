@@ -1,11 +1,12 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
 
-	"database/sql"
-
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -16,8 +17,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error loading .env file")
 	}
-	connectionString := os.Getenv("DATABASE_URL")
-	dbWpo, err := sql.Open("postgres", connectionString)
+	dbWpo, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -25,10 +25,12 @@ func main() {
 	// close connection at the end of main
 	defer dbWpo.Close()
 	// Test the connection to the database
-	err = dbWpo.Ping()
+	var greeting string
+	err = dbWpo.QueryRow(context.Background(), "select 'Hello, world!'").Scan(&greeting)
 	if err != nil {
-		log.Fatal(err)
-	} else {
-		log.Println("Successfully Connected")
+		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
+		os.Exit(1)
 	}
+
+	fmt.Println(greeting)
 }
