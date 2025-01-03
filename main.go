@@ -1,36 +1,46 @@
 package main
 
 import (
-	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
-	"os"
-
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
+	"net/http"
+	"time"
+	"wpo-go/config"
+	"wpo-go/models"
 )
 
+type ChangedPurchaseOrder struct {
+	COrderID uint
+	Created  time.Time
+}
+
 func main() {
-	// load env
-	err := godotenv.Load(".env")
+	config.LoadEnv()
+	models.ConnectDatabase()
+
+	response, err := http.Get("http://localhost:8080/v1/get-changed-purchase-orders")
 	if err != nil {
-		log.Fatalf("Error loading .env file")
+		log.Fatalf("Error fetching data: %v", err)
 	}
-	dbWpo, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		log.Fatalf("Failed to fetch data. HTTP Status: %d", response.StatusCode)
+	}
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error reading response body: %v", err)
 	}
 
-	// close connection at the end of main
-	defer dbWpo.Close()
-	// Test the connection to the database
-	var greeting string
-	err = dbWpo.QueryRow(context.Background(), "select 'Hello, world!'").Scan(&greeting)
+	var changedPurchaseOrders []ChangedPurchaseOrder
+	err = json.Unmarshal(body, &changedPurchaseOrders)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("Error unmarshaling JSON: %v", err)
 	}
 
-	fmt.Println(greeting)
+	for _, order := range changedPurchaseOrders {
+		fmt.Printf("Order ID: %d, Created: %s\n", order.COrderID, order.Created.Format(time.RFC3339))
+	}
 }
