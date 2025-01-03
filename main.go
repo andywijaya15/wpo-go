@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"time"
 	"wpo-go/config"
-	"wpo-go/models"
 )
 
 type ChangedPurchaseOrder struct {
@@ -18,9 +17,9 @@ type ChangedPurchaseOrder struct {
 
 func main() {
 	config.LoadEnv()
-	models.ConnectDatabase()
+	config.ConnectDatabase()
 
-	response, err := http.Get("http://localhost:8080/v1/get-changed-purchase-orders")
+	response, err := http.Get("http://localhost:8080/v1/get-changed-purchase-orders-concurrency")
 	if err != nil {
 		log.Fatalf("Error fetching data: %v", err)
 	}
@@ -41,6 +40,6 @@ func main() {
 	}
 
 	for _, order := range changedPurchaseOrders {
-		fmt.Printf("Order ID: %d, Created: %s\n", order.COrderID, order.Created.Format(time.RFC3339))
+		fmt.Printf("Order ID: %d, Created: %s\n", order.COrderID, order.Created.Format(time.DateOnly))
 	}
 }
