@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 	"wpo-go/config"
+	"wpo-go/models"
 )
 
 type ChangedPurchaseOrder struct {
@@ -17,7 +18,7 @@ type ChangedPurchaseOrder struct {
 
 func main() {
 	config.LoadEnv()
-	config.ConnectDatabase()
+	models.ConnectDatabase()
 
 	response, err := http.Get("http://localhost:8080/v1/get-changed-purchase-orders-concurrency")
 	if err != nil {
